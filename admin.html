@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bluedog Design — Microsite Admin</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: #040028;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      color: #EEF0FF;
+      min-height: 100vh;
+    }
+    .admin-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(4,0,28,0.96);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .admin-nav-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 32px; height: 52px;
+    }
+    .admin-nav-left { display: flex; align-items: center; gap: 16px; }
+    .admin-nav-left a {
+      font-size: 11px; font-weight: 400; color: rgba(238,240,255,0.42);
+      text-decoration: none; transition: color 0.2s;
+    }
+    .admin-nav-left a:hover { color: #F7B778; }
+    .admin-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px; font-size: 9px; font-weight: 700;
+      letter-spacing: 2px; text-transform: uppercase;
+      color: #F7B778; border: 1px solid rgba(247,183,120,0.25);
+      border-radius: 20px;
+    }
+    .admin-user { font-size: 11px; color: rgba(238,240,255,0.5); }
+    .admin-user strong { color: #F7B778; font-weight: 600; }
+    .admin-container { max-width: 1200px; margin: 0 auto; padding: 80px 32px 60px; }
+    .admin-header { padding: 32px 0 28px; border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 32px; }
+    .admin-header h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 700; letter-spacing: -0.5px; color: #fff; margin-bottom: 8px; }
+    .admin-header p { font-size: 14px; color: rgba(238,240,255,0.45); line-height: 1.6; max-width: 520px; }
+    .tabs { display: flex; gap: 0; margin-bottom: 36px; }
+    .tab-btn {
+      padding: 12px 28px; font-size: 12px; font-weight: 600;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: rgba(238,240,255,0.38); background: transparent;
+      border: 1px solid rgba(255,255,255,0.06);
+      cursor: pointer; transition: all 0.25s; font-family: inherit;
+    }
+    .tab-btn:first-child { border-radius: 8px 0 0 8px; }
+    .tab-btn:last-child { border-radius: 0 8px 8px 0; }
+    .tab-btn.active { color: #F7B778; background: rgba(247,183,120,0.08); border-color: rgba(247,183,120,0.3); }
+    .tab-btn:hover:not(.active) { color: rgba(238,240,255,0.65); background: rgba(255,255,255,0.03); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; animation: fadeUp 0.35s ease; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .library-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    .view-toggle { display: flex; gap: 0; }
+    .view-btn { padding: 8px 16px; font-size: 11px; font-weight: 600; color: rgba(238,240,255,0.4); background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); cursor: pointer; transition: all 0.2s; font-family: inherit; }
+    .view-btn:first-child { border-radius: 6px 0 0 6px; }
+    .view-btn:last-child { border-radius: 0 6px 6px 0; }
+    .view-btn.active { color: #F7B778; background: rgba(247,183,120,0.08); border-color: rgba(247,183,120,0.25); }
+    .btn-primary { padding: 10px 24px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #040028; background: linear-gradient(135deg, #F7B778, #DB683E); border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(247,183,120,0.3); }
+    .sites-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+    .sites-list { display: flex; flex-direction: column; gap: 8px; }
+    .site-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; overflow: hidden; transition: all 0.25s; cursor: pointer; }
+    .site-card:hover { border-color: rgba(247,183,120,0.25); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+    .site-card-preview { height: 160px; position: relative; overflow: hidden; }
+    .site-card-preview-inner { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: 700; color: rgba(255,255,255,0.08); }
+    .site-card-body { padding: 20px; }
+    .site-card-title { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .site-card-meta { font-size: 11px; color: rgba(238,240,255,0.35); margin-bottom: 12px; }
+    .site-card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-sm { padding: 6px 14px; font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: rgba(238,240,255,0.6); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 4px; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+    .btn-sm:hover { color: #F7B778; border-color: rgba(247,183,120,0.3); }
+    .site-row { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; transition: all 0.2s; cursor: pointer; gap: 16px; }
+    .site-row:hover { border-color: rgba(247,183,120,0.2); background: rgba(255,255,255,0.04); }
+    .site-row-left { display: flex; align-items: center; gap: 16px; flex: 1; }
+    .site-row-indicator { width: 8px; height: 8px; border-radius: 50%; background: #4ADE80; flex-shrink: 0; }
+    .site-row-indicator.draft { background: #FBBF24; }
+    .site-row-title { font-size: 14px; font-weight: 600; color: #fff; }
+    .site-row-date { font-size: 11px; color: rgba(238,240,255,0.3); }
+    .site-row-right { display: flex; gap: 8px; }
+    .design-layout { display: grid; grid-template-columns: 260px 1fr; gap: 24px; }
+    @media (max-width: 800px) { .design-layout { grid-template-columns: 1fr; } }
+    .story-flow { display: flex; flex-direction: column; gap: 0; }
+    .phase-item { display: flex; align-items: flex-start; gap: 12px; padding: 16px; position: relative; border-left: 2px solid rgba(255,255,255,0.06); margin-left: 8px; transition: all 0.2s; cursor: pointer; }
+    .phase-item:hover { border-left-color: rgba(247,183,120,0.3); }
+    .phase-item.active { border-left-color: #F7B778; }
+    .phase-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.15); background: #040028; flex-shrink: 0; position: absolute; left: -9px; top: 18px; transition: all 0.2s; }
+    .phase-item.active .phase-dot { border-color: #F7B778; background: rgba(247,183,120,0.2); }
+    .phase-content { padding-left: 16px; }
+    .phase-num { font-size: 9px; font-weight: 700; letter-spacing: 2px; color: rgba(238,240,255,0.2); margin-bottom: 4px; }
+    .phase-name { font-size: 13px; font-weight: 600; color: #fff; }
+    .phase-toggle { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+    .toggle-switch { width: 32px; height: 18px; border-radius: 9px; background: rgba(255,255,255,0.1); position: relative; cursor: pointer; transition: background 0.2s; }
+    .toggle-switch.on { background: rgba(247,183,120,0.5); }
+    .toggle-knob { width: 14px; height: 14px; border-radius: 50%; background: #fff; position: absolute; top: 2px; left: 2px; transition: transform 0.2s; }
+    .toggle-switch.on .toggle-knob { transform: translateX(14px); }
+    .toggle-label { font-size: 10px; color: rgba(238,240,255,0.3); text-transform: uppercase; letter-spacing: 1px; }
+    .design-panel { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 28px; }
+    .design-panel h3 { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .design-panel-sub { font-size: 12px; color: rgba(238,240,255,0.35); margin-bottom: 24px; }
+    .content-block { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 16px; margin-bottom: 12px; transition: all 0.2s; cursor: pointer; }
+    .content-block:hover { border-color: rgba(247,183,120,0.25); }
+    .content-block.selected { border-color: #F7B778; background: rgba(247,183,120,0.05); }
+    .content-block-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .content-block-title { font-size: 13px; font-weight: 600; color: #fff; }
+    .content-block-tag { font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 3px 8px; border-radius: 3px; color: #F7B778; background: rgba(247,183,120,0.1); }
+    .content-block-desc { font-size: 12px; color: rgba(238,240,255,0.4); line-height: 1.5; }
+    .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-top: 16px; }
+    .team-member { display: flex; align-items: center; gap: 10px; padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+    .team-member:hover { border-color: rgba(247,183,120,0.2); }
+    .team-member.selected { border-color: #F7B778; background: rgba(247,183,120,0.05); }
+    .team-avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: rgba(238,240,255,0.4); flex-shrink: 0; }
+    .team-info-name { font-size: 12px; font-weight: 600; color: #fff; }
+    .team-info-role { font-size: 10px; color: rgba(238,240,255,0.3); }
+    .analytics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-bottom: 32px; }
+    .stat-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 24px; }
+    .stat-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: rgba(238,240,255,0.3); margin-bottom: 8px; }
+    .stat-value { font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 700; color: #fff; line-height: 1; }
+    .stat-change { font-size: 11px; margin-top: 8px; }
+    .stat-change.up { color: #4ADE80; }
+    .stat-change.down { color: #F87171; }
+    .chart-placeholder { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 32px; margin-bottom: 24px; }
+    .chart-title { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 16px; }
+    .bar-chart { display: flex; align-items: flex-end; gap: 12px; height: 200px; padding-top: 20px; }
+    .bar-col { display: flex; flex-direction: column; align-items: center; flex: 1; gap: 6px; }
+    .bar { width: 100%; border-radius: 4px 4px 0 0; background: linear-gradient(180deg, #F7B778, #DB683E); transition: height 0.5s ease; min-width: 24px; }
+    .bar-label { font-size: 10px; color: rgba(238,240,255,0.3); }
+    .recent-table { width: 100%; border-collapse: collapse; }
+    .recent-table th { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(238,240,255,0.25); text-align: left; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .recent-table td { font-size: 13px; color: rgba(238,240,255,0.6); padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+    .recent-table tr:hover td { background: rgba(255,255,255,0.02); }
+  </style>
+</head>
+<body>
+  <nav class="admin-nav"><div class="admin-nav-inner"><div class="admin-nav-left"><a href="index.html">&larr; Back to Microsite</a><span class="admin-badge">&#9881;&#65039; Admin</span></div><div class="admin-user">Logged in as <strong>Shannon</strong></div></div></nav>
+  <div class="admin-container">
+    <div class="admin-header"><h1>Microsite Admin</h1><p>Manage your custom capabilities microsites, configure content for each phase of the story, and track engagement.</p></div>
+    <div class="tabs"><button class="tab-btn active" data-tab="library">Library</button><button class="tab-btn" data-tab="design">Design</button><button class="tab-btn" data-tab="analytics">Analytics</button></div>
+    <div class="tab-panel active" id="tab-library">
+      <div class="library-toolbar"><div class="view-toggle"><button class="view-btn active" data-view="grid">Grid</button><button class="view-btn" data-view="list">List</button></div><button class="btn-primary" id="btn-new-site">+ New Microsite</button></div>
+      <div class="sites-grid" id="view-grid">
+        <div class="site-card"><div class="site-card-preview" style="background: linear-gradient(160deg, #040028, #06003A);"><div class="site-card-preview-inner">BD</div></div><div class="site-card-body"><div class="site-card-title">Bluedog Capabilities Overview</div><div class="site-card-meta">Published &middot; Last edited Apr 6, 2026</div><div class="site-card-actions"><button class="btn-sm">Preview</button><button class="btn-sm">Edit</button><button class="btn-sm">Duplicate</button><button class="btn-sm">Share Link</button></div></div></div>
+        <div class="site-card"><div class="site-card-preview" style="background: linear-gradient(135deg, #FF2D78 0%, #FF6B35 50%, #FF9A44 100%);"><div class="site-card-preview-inner">D</div></div><div class="site-card-body"><div class="site-card-title">Dunkin' Pitch Deck</div><div class="site-card-meta">Draft &middot; Last edited Apr 2, 2026</div><div class="site-card-actions"><button class="btn-sm">Preview</button><button class="btn-sm">Edit</button><button class="btn-sm">Duplicate</button><button class="btn-sm">Delete</button></div></div></div>
+        <div class="site-card"><div class="site-card-preview" style="background: linear-gradient(135deg, #FFB800 0%, #FFC629 40%, #FFD54F 100%);"><div class="site-card-preview-inner">BWW</div></div><div class="site-card-body"><div class="site-card-title">BWW Experience Strategy</div><div class="site-card-meta">Draft &middot; Last edited Mar 28, 2026</div><div class="site-card-actions"><button class="btn-sm">Preview</button><button class="btn-sm">Edit</button><button class="btn-sm">Duplicate</button><button class="btn-sm">Delete</button></div></div></div>
+      </div>
+      <div class="sites-list" id="view-list" style="display:none;">
+        <div class="site-row"><div class="site-row-left"><div class="site-row-indicator"></div><div><div class="site-row-title">Bluedog Capabilities Overview</div><div class="site-row-date">Published &middot; Apr 6, 2026</div></div></div><div class="site-row-right"><button class="btn-sm">Preview</button><button class="btn-sm">Edit</button><button class="btn-sm">Share Link</button></div></div>
+        <div class="site-row"><div class="site-row-left"><div class="site-row-indicator draft"></div><div><div class="site-row-title">Dunkin' Pitch Deck</div><div class="site-row-date">Draft &middot; Apr 2, 2026</div></div></div><div class="site-row-right"><button class="btn-sm">Preview</button><button class="btn-sm">Edit</button><button class="btn-sm">Delete</button></div></div>
+        <div class="site-row"><div class="site-row-left"><div class="site-row-indicator draft"></div><div><div class="site-row-title">BWW Experience Strategy</div><div class="site-row-date">Draft &middot; Mar 28, 2026</div></div></div><div class="site-row-right"><button class="btn-sm">Preview</button><button class="btn-sm">Edit</button><button class="btn-sm">Delete</button></div></div>
+      </div>
+    </div>
+    <div class="tab-panel" id="tab-design">
+      <div class="design-layout">
+        <div><div style="font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:rgba(238,240,255,0.25); margin-bottom:16px;">Story Phases</div>
+          <div class="story-flow">
+            <div class="phase-item active" data-phase="hook"><div class="phase-dot"></div><div class="phase-content"><div class="phase-num">01</div><div class="phase-name">Welcome / Hook</div><div class="phase-toggle"><div class="toggle-switch on"><div class="toggle-knob"></div></div><span class="toggle-label">Active</span></div></div></div>
+            <div class="phase-item" data-phase="bluedog"><div class="phase-dot"></div><div class="phase-content"><div class="phase-num">02</div><div class="phase-name">About Bluedog</div><div class="phase-toggle"><div class="toggle-switch on"><div class="toggle-knob"></div></div><span class="toggle-label">Active</span></div></div></div>
+            <div class="phase-item" data-phase="capabilities"><div class="phase-dot"></div><div class="phase-content"><div class="phase-num">03</div><div class="phase-name">Capabilities</div><div class="phase-toggle"><div class="toggle-switch on"><div class="toggle-knob"></div></div><span class="toggle-label">Active</span></div></div></div>
+            <div class="phase-item" data-phase="thinking"><div class="phase-dot"></div><div class="phase-content"><div class="phase-num">04</div><div class="phase-name">How We Think</div><div class="phase-toggle"><div class="toggle-switch on"><div class="toggle-knob"></div></div><span class="toggle-label">Active</span></div></div></div>
+            <div class="phase-item" data-phase="work"><div class="phase-dot"></div><div class="phase-content"><div class="phase-num">05</div><div class="phase-name">Our Work</div><div class="phase-toggle"><div class="toggle-switch on"><div class="toggle-knob"></div></div><span class="toggle-label">Active</span></div></div></div>
+            <div class="phase-item" data-phase="team"><div class="phase-dot"></div><div class="phase-content"><div class="phase-num">06</div><div class="phase-name">Meet the Team</div><div class="phase-toggle"><div class="toggle-switch on"><div class="toggle-knob"></div></div><span class="toggle-label">Active</span></div></div></div>
+            <div class="phase-item" data-phase="cta"><div class="phase-dot"></div><div class="phase-content"><div class="phase-num">07</div><div class="phase-name">CTA / Close</div><div class="phase-toggle"><div class="toggle-switch on"><div class="toggle-knob"></div></div><span class="toggle-label">Active</span></div></div></div>
+          </div>
+        </div>
+        <div class="design-panel" id="design-content">
+          <h3>Our Work &mdash; Case Studies</h3><p class="design-panel-sub">Select which case studies to include. Click to toggle.</p>
+          <div class="content-block selected"><div class="content-block-header"><span class="content-block-title">Dunkin' &mdash; Food Strategy</span><span class="content-block-tag">Case Study</span></div><div class="content-block-desc">Making food work as hard as the beverages. InterLinked Strategic Insight methodology.</div></div>
+          <div class="content-block selected"><div class="content-block-header"><span class="content-block-title">Buffalo Wild Wings &mdash; Signature Experience</span><span class="content-block-tag">Case Study</span></div><div class="content-block-desc">Defining the Signature Experience using ExperienceAtlas methodology.</div></div>
+          <div class="content-block selected"><div class="content-block-header"><span class="content-block-title">AMF / Lucky Strike &mdash; Rebrand</span><span class="content-block-tag">Case Study</span></div><div class="content-block-desc">Designing AMF's next iconic era. Complete rebrand with living brand playbook.</div></div>
+          <div class="content-block"><div class="content-block-header"><span class="content-block-title">Mars Wrigley &mdash; Consumer Insights</span><span class="content-block-tag">Case Study</span></div><div class="content-block-desc">Deep ethnographic research driving category innovation for global confectionery.</div></div>
+          <div class="content-block"><div class="content-block-header"><span class="content-block-title">Sargento &mdash; Innovation Strategy</span><span class="content-block-tag">Case Study</span></div><div class="content-block-desc">"Now I know why you guys are different." Future-Present Approach for cheese innovation.</div></div>
+          <div style="margin-top: 28px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.06);">
+            <h3>Team Members</h3><p class="design-panel-sub">Select which team members appear in this microsite.</p>
+            <div class="team-grid">
+              <div class="team-member selected"><div class="team-avatar">JF</div><div><div class="team-info-name">Jess Feld</div><div class="team-info-role">Client Engagement</div></div></div>
+              <div class="team-member selected"><div class="team-avatar">CW</div><div><div class="team-info-name">Cody Wells</div><div class="team-info-role">Creative Strategy</div></div></div>
+              <div class="team-member selected"><div class="team-avatar">GE</div><div><div class="team-info-name">Graham Ebetsch</div><div class="team-info-role">Brand Vision</div></div></div>
+              <div class="team-member selected"><div class="team-avatar">NO</div><div><div class="team-info-name">Noelle O'Saben</div><div class="team-info-role">Design Director</div></div></div>
+            </div>
+          </div>
+          <div style="margin-top: 28px; display:flex; gap:12px; justify-content:flex-end;"><button class="btn-sm" style="padding:10px 24px;">Save Draft</button><button class="btn-primary">Generate Microsite</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="tab-panel" id="tab-analytics">
+      <div class="analytics-grid">
+        <div class="stat-card"><div class="stat-label">Total Views</div><div class="stat-value">1,247</div><div class="stat-change up">&uarr; 23% this month</div></div>
+        <div class="stat-card"><div class="stat-label">Unique Visitors</div><div class="stat-value">389</div><div class="stat-change up">&uarr; 12% this month</div></div>
+        <div class="stat-card"><div class="stat-label">Avg. Time on Site</div><div class="stat-value">4:32</div><div class="stat-change up">&uarr; 8% vs last month</div></div>
+        <div class="stat-card"><div class="stat-label">Active Microsites</div><div class="stat-value">3</div><div class="stat-change" style="color:rgba(238,240,255,0.3);">1 published, 2 drafts</div></div>
+      </div>
+      <div class="chart-placeholder"><div class="chart-title">Views by Section (Capabilities Overview)</div><div class="bar-chart"><div class="bar-col"><div class="bar" style="height:90%"></div><div class="bar-label">Welcome</div></div><div class="bar-col"><div class="bar" style="height:78%"></div><div class="bar-label">Bluedog</div></div><div class="bar-col"><div class="bar" style="height:95%"></div><div class="bar-label">Capabilities</div></div><div class="bar-col"><div class="bar" style="height:60%"></div><div class="bar-label">Thinking</div></div><div class="bar-col"><div class="bar" style="height:85%"></div><div class="bar-label">Work</div></div><div class="bar-col"><div class="bar" style="height:72%"></div><div class="bar-label">Team</div></div><div class="bar-col"><div class="bar" style="height:45%"></div><div class="bar-label">CTA</div></div></div></div>
+      <div class="chart-placeholder"><div class="chart-title">Recent Activity</div><table class="recent-table"><thead><tr><th>Visitor</th><th>Microsite</th><th>Sections Viewed</th><th>Time</th><th>Date</th></tr></thead><tbody><tr><td>Chicago, IL</td><td>Capabilities Overview</td><td>All 7 sections</td><td>6:14</td><td>Today</td></tr><tr><td>New York, NY</td><td>Capabilities Overview</td><td>5 sections</td><td>3:42</td><td>Today</td></tr><tr><td>San Francisco, CA</td><td>Dunkin' Pitch</td><td>3 sections</td><td>2:18</td><td>Yesterday</td></tr><tr><td>Chicago, IL</td><td>Capabilities Overview</td><td>All 7 sections</td><td>5:55</td><td>Yesterday</td></tr><tr><td>Atlanta, GA</td><td>BWW Experience</td><td>4 sections</td><td>4:01</td><td>Apr 5</td></tr></tbody></table></div>
+    </div>
+  </div>
+  <script>
+    document.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById('tab-'+btn.dataset.tab).classList.add('active');});});
+    document.querySelectorAll('.view-btn').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');const g=btn.dataset.view==='grid';document.getElementById('view-grid').style.display=g?'grid':'none';document.getElementById('view-list').style.display=g?'none':'flex';});});
+    document.querySelectorAll('.phase-item').forEach(item=>{item.addEventListener('click',()=>{document.querySelectorAll('.phase-item').forEach(p=>p.classList.remove('active'));item.classList.add('active');});});
+    document.querySelectorAll('.toggle-switch').forEach(t=>{t.addEventListener('click',e=>{e.stopPropagation();t.classList.toggle('on');t.parentElement.querySelector('.toggle-label').textContent=t.classList.contains('on')?'Active':'Off';});});
+    document.querySelectorAll('.content-block').forEach(b=>{b.addEventListener('click',()=>{b.classList.toggle('selected');});});
+    document.querySelectorAll('.team-member').forEach(m=>{m.addEventListener('click',()=>{m.classList.toggle('selected');});});
+  </script>
+</body>
+</html>
